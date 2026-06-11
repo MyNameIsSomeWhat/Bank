@@ -46,4 +46,4 @@ public class KycController {
 
         return ResponseEntity.ok("KYC uploaded successfully");
     }
-}
+}   
