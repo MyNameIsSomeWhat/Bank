@@ -2,7 +2,7 @@ package org.example.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.project.enums.Role;
+import org.example.project.entity.enums.Role;
 import java.time.LocalDateTime;
 
 @Entity

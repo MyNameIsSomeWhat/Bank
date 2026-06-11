@@ -1,35 +1,49 @@
 package org.example.project.controller;
 
-import org.example.project.service.KycService;
+import org.example.project.entity.KycProfile;
+import org.example.project.entity.enums.KycStatus;
+import org.example.project.entity.User;
+import org.example.project.repository.KycProfileRepository;
+import org.example.project.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/kyc")
 public class KycController {
 
-    private final KycService kycService;
+    private final UserRepository userRepository;
+    private final KycProfileRepository kycProfileRepository;
 
-    public KycController(KycService kycService) {
-        this.kycService = kycService;
+    public KycController(UserRepository userRepository, KycProfileRepository kycProfileRepository) {
+        this.userRepository = userRepository;
+        this.kycProfileRepository = kycProfileRepository;
     }
 
     @PostMapping("/upload")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<String> uploadKyc(
-            @RequestParam("front") MultipartFile front,
-            @RequestParam("back") MultipartFile back) {
+    public ResponseEntity<?> uploadKyc(@RequestParam Long userId,
+                                       @RequestParam("document") org.springframework.web.multipart.MultipartFile document) throws IOException {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (front.isEmpty() || back.isEmpty()) {
-            return ResponseEntity.badRequest().body("Both front and back images are required");
-        }
+        String fileName = UUID.randomUUID() + "_" + document.getOriginalFilename();
+        Path uploadPath = Paths.get("uploads/" + fileName);
+        Files.createDirectories(uploadPath.getParent());
+        Files.write(uploadPath, document.getBytes());
 
-        String result = kycService.uploadKyc(username, front, back);
-        return ResponseEntity.ok(result);
+        KycProfile kyc = new KycProfile();
+        kyc.setUser(user);
+        kyc.setIdCardFrontUrl("/uploads/" + fileName);   // Field thực tế trong entity
+        kyc.setStatus(KycStatus.PENDING);
+        kycProfileRepository.save(kyc);
+
+        return ResponseEntity.ok("KYC uploaded successfully");
     }
 }

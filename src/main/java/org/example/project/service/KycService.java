@@ -2,7 +2,7 @@ package org.example.project.service;
 
 import org.example.project.entity.KycProfile;
 import org.example.project.entity.User;
-import org.example.project.enums.KycStatus;
+import org.example.project.entity.enums.KycStatus;
 import org.example.project.repository.KycProfileRepository;
 import org.example.project.repository.UserRepository;
 import org.springframework.stereotype.Service;

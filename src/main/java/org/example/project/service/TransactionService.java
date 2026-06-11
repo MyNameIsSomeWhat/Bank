@@ -5,7 +5,7 @@ import org.example.project.dto.TransferRequest;
 import org.example.project.entity.Account;
 import org.example.project.entity.Transaction;
 import org.example.project.entity.User;
-import org.example.project.enums.TransactionType;
+import org.example.project.entity.enums.TransactionType;
 import org.example.project.repository.AccountRepository;
 import org.example.project.repository.TransactionRepository;
 import org.example.project.repository.UserRepository;

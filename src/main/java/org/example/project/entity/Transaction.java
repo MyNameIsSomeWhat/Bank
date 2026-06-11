@@ -2,7 +2,7 @@ package org.example.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.project.enums.TransactionType;
+import org.example.project.entity.enums.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

@@ -1,40 +1,56 @@
 package org.example.project.controller;
 
-import org.example.project.dto.TransactionResponseDto;
-import org.example.project.dto.TransferRequest;
-import org.example.project.service.TransactionService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.example.project.entity.Account;
+import org.example.project.entity.Transaction;
+import org.example.project.repository.AccountRepository;
+import org.example.project.repository.TransactionRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 public class TransactionController {
 
-    private final TransactionService transactionService;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
-    public TransactionController(TransactionService transactionService) {
-        this.transactionService = transactionService;
+    public TransactionController(AccountRepository accountRepository,
+                                 TransactionRepository transactionRepository) {
+        this.accountRepository = accountRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @PostMapping("/transfer")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<TransactionResponseDto> transfer(@RequestBody TransferRequest request) {
-        return ResponseEntity.ok(transactionService.transfer(request));
-    }
+    @Transactional
+    public ResponseEntity<?> transfer(@RequestParam String targetAccountNumber,
+                                      @RequestParam BigDecimal amount) {
 
-    @GetMapping("/history")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<Page<TransactionResponseDto>> getHistory(
-            @RequestParam(required = false) Long accountId,
-            Pageable pageable) {
+        // Tạm thời dùng accountId = 1 (sau này sẽ cải tiến với SecurityContext)
+        Account source = accountRepository.findByUserId(1L)
+                .orElseThrow(() -> new RuntimeException("Source account not found"));
 
-        // Nếu không truyền accountId thì dùng account của user hiện tại
-        if (accountId == null) {
-            return ResponseEntity.ok(transactionService.getTransactionHistory(accountId, pageable));
+        Account target = accountRepository.findByAccountNumber(targetAccountNumber)
+                .orElseThrow(() -> new RuntimeException("Target account not found"));
+
+        if (source.getBalance().compareTo(amount) < 0) {
+            return ResponseEntity.status(409).body("Insufficient balance");
         }
-        return ResponseEntity.ok(transactionService.getTransactionHistory(accountId, pageable));
+
+        source.setBalance(source.getBalance().subtract(amount));
+        target.setBalance(target.getBalance().add(amount));
+
+        Transaction tx = new Transaction();
+        tx.setFromAccount(source);
+        tx.setToAccount(target);
+        tx.setAmount(amount);
+        transactionRepository.save(tx);
+
+        accountRepository.save(source);
+        accountRepository.save(target);
+
+        return ResponseEntity.ok("Transfer successful");
     }
 }

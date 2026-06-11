@@ -2,7 +2,8 @@ package org.example.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.project.enums.KycStatus;
+import org.example.project.entity.enums.KycStatus;
+
 import java.time.LocalDateTime;
 
 @Entity

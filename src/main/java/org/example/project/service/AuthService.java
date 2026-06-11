@@ -3,7 +3,7 @@ package org.example.project.service;
 import org.example.project.dto.*;
 import org.example.project.entity.Account;
 import org.example.project.entity.User;
-import org.example.project.enums.Role;
+import org.example.project.entity.enums.Role;
 import org.example.project.repository.AccountRepository;
 import org.example.project.repository.UserRepository;
 import org.example.project.security.JwtService;

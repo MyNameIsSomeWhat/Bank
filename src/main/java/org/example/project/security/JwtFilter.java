@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,19 +16,11 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailsService customUserDetailsService;
 
-    private static final List<String> PUBLIC_URLS = List.of(
-            "/auth/register",
-            "/auth/login",
-            "/api/auth/register",
-            "/api/auth/login",
-            "/api/v1/kyc/"
-    );
+    private static final List<String> PUBLIC_URLS = List.of("/api/auth/", "/api/v1/kyc/");
 
-    public JwtFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
+    public JwtFilter(JwtService jwtService) {
         this.jwtService = jwtService;
-        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -38,26 +29,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI();
 
-        // Bỏ qua filter cho các endpoint Public
         if (PUBLIC_URLS.stream().anyMatch(uri::startsWith)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Các request khác mới kiểm tra Token
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             String username = jwtService.extractUsername(token);
-
             if (username != null && jwtService.isTokenValid(token, username)) {
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(username, null, null)
+                );
             }
         }
-
         chain.doFilter(request, response);
     }
 }
