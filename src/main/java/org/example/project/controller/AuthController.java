@@ -24,11 +24,8 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager,
-                          UserService userService,
-                          AccountService accountService,
-                          PasswordEncoder passwordEncoder,
-                          JwtService jwtService) {
+    public AuthController(AuthenticationManager authenticationManager, UserService userService,
+                          AccountService accountService, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.accountService = accountService;
@@ -56,13 +53,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
-
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         String accessToken = jwtService.generateAccessToken(request.getUsername());
         String refreshToken = jwtService.generateRefreshToken(request.getUsername());
-
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken, "Login successful"));
     }
 

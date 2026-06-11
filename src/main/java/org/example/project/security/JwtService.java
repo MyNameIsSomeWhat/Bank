@@ -14,16 +14,17 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.access-expiration}")
-    private long accessExpiration;
+    @Value("${jwt.access.expiration}")
+    private long accessExpiration;   // 5 phút
 
-    @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
+    @Value("${jwt.refresh.expiration}")
+    private long refreshExpiration;  // 24 giờ
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    // Tạo Access Token (ngắn hạn)
     public String generateAccessToken(String username) {
         return Jwts.builder()
                 .subject(username)
@@ -33,6 +34,7 @@ public class JwtService {
                 .compact();
     }
 
+    // Tạo Refresh Token (dài hạn)
     public String generateRefreshToken(String username) {
         return Jwts.builder()
                 .subject(username)
@@ -43,8 +45,12 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser().verifyWith(getSigningKey()).build()
-                .parseSignedClaims(token).getPayload().getSubject();
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     public boolean isTokenValid(String token, String username) {
@@ -57,8 +63,18 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parser().verifyWith(getSigningKey()).build()
-                .parseSignedClaims(token).getPayload().getExpiration();
+        Date expiration = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
         return expiration.before(new Date());
+    }
+
+    // Blacklist (sẽ implement sau khi có TokenBlacklistRepository)
+    public boolean isTokenBlacklisted(String token) {
+        // TODO: Kiểm tra trong DB TokenBlacklist
+        return false;
     }
 }

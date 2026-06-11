@@ -4,46 +4,52 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
-    private static final List<String> PUBLIC_URLS = List.of("/api/auth/", "/api/v1/kyc/");
-
     public JwtFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String uri = request.getRequestURI();
+        String path = request.getRequestURI();
 
-        if (PUBLIC_URLS.stream().anyMatch(uri::startsWith)) {
-            chain.doFilter(request, response);
+        // PUBLIC ENDPOINTS - Cho phép Register, Login, Refresh...
+        if (path.startsWith("/api/auth/") || path.startsWith("/api/v1/kyc/")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            String username = jwtService.extractUsername(token);
-            if (username != null && jwtService.isTokenValid(token, username)) {
-                SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(username, null, null)
-                );
-            }
+        final String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        chain.doFilter(request, response);
+
+        String jwt = authHeader.substring(7);
+        String username = jwtService.extractUsername(jwt);
+
+        if (username != null && jwtService.isTokenValid(jwt, username)) {
+            // Authentication đơn giản (có thể nâng cao sau)
+            org.springframework.security.authentication.UsernamePasswordAuthenticationToken authToken =
+                    new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(username, null, null);
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+
+        filterChain.doFilter(request, response);
     }
 }
