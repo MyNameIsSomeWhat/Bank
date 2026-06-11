@@ -1,18 +1,17 @@
 package org.example.project.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.example.project.entity.enums.KycStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "kyc_profiles")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class KycProfile {
 
     @Id
@@ -23,12 +22,15 @@ public class KycProfile {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String idCardFrontUrl;
-    private String idCardBackUrl;
+    private String documentUrl;     // URL Cloudinary/S3
 
-    @Enumerated(EnumType.STRING)
-    private KycStatus status = KycStatus.PENDING;
+    private String status;          // PENDING, CONFIRMED, REJECTED
 
-    private LocalDateTime submittedAt = LocalDateTime.now();
+    private LocalDateTime submittedAt;
     private LocalDateTime reviewedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        submittedAt = LocalDateTime.now();
+    }
 }

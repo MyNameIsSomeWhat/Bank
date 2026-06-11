@@ -1,18 +1,18 @@
 package org.example.project.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.example.project.entity.enums.TransactionType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Transaction {
 
     @Id
@@ -27,12 +27,15 @@ public class Transaction {
     @JoinColumn(name = "to_account_id")
     private Account toAccount;
 
+    @Column(nullable = false)
     private BigDecimal amount;
 
-    private String description;
+    private String transactionType;   // TRANSFER, DEPOSIT, WITHDRAW
 
-    private LocalDateTime transactionDate = LocalDateTime.now();
+    private LocalDateTime timestamp;
 
-    @Enumerated(EnumType.STRING)
-    private TransactionType type;
+    @PrePersist
+    protected void onCreate() {
+        timestamp = LocalDateTime.now();
+    }
 }

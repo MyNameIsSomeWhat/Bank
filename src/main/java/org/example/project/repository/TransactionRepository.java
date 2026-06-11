@@ -8,5 +8,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    Page<Transaction> findByFromAccountIdOrToAccountId(Long fromId, Long toId, Pageable pageable);
+
+    // UC-06: Query OR from_account hoặc to_account (theo SRS)
+    Page<Transaction> findByFromAccount_AccountNumberOrToAccount_AccountNumber(
+            String fromAccountNumber, String toAccountNumber, Pageable pageable);
 }

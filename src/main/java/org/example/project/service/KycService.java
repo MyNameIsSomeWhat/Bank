@@ -1,47 +1,53 @@
 package org.example.project.service;
 
+import org.example.project.dto.KycDto;  // Giả sử có hoặc tạo stub
 import org.example.project.entity.KycProfile;
-import org.example.project.entity.enums.KycStatus;
 import org.example.project.entity.User;
 import org.example.project.repository.KycProfileRepository;
 import org.example.project.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Service
 public class KycService {
 
+    private final KycProfileRepository kycRepository;
     private final UserRepository userRepository;
-    private final KycProfileRepository kycProfileRepository;
 
-    public KycService(UserRepository userRepository, KycProfileRepository kycProfileRepository) {
+    public KycService(KycProfileRepository kycRepository, UserRepository userRepository) {
+        this.kycRepository = kycRepository;
         this.userRepository = userRepository;
-        this.kycProfileRepository = kycProfileRepository;
     }
 
-    @Transactional
-    public String uploadKyc(Long userId, MultipartFile document) throws IOException {
+    public KycDto uploadKyc(MultipartFile file, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String fileName = UUID.randomUUID() + "_" + document.getOriginalFilename();
-        Path uploadPath = Paths.get("uploads/" + fileName);
-        Files.createDirectories(uploadPath.getParent());
-        Files.write(uploadPath, document.getBytes());
+        // TODO: Upload file lên Cloudinary/AWS S3 (theo SRS UC-05)
+        String documentUrl = "https://fake-cloud-storage/" + file.getOriginalFilename();
 
         KycProfile kyc = new KycProfile();
         kyc.setUser(user);
-        kyc.setIdCardFrontUrl("/uploads/" + fileName);
-        kyc.setStatus(KycStatus.PENDING);
-        kycProfileRepository.save(kyc);
+        kyc.setDocumentUrl(documentUrl);
+        kyc.setStatus("PENDING");
+        kyc.setSubmittedAt(LocalDateTime.now());
+        kycRepository.save(kyc);
 
-        return "KYC uploaded successfully";
+        return new KycDto(kyc.getId(), user.getId(), documentUrl, "PENDING");
+    }
+
+    public void approveKyc(Long kycId) {
+        KycProfile kyc = kycRepository.findById(kycId)
+                .orElseThrow(() -> new RuntimeException("KYC not found"));
+
+        kyc.setStatus("CONFIRMED");
+        kycRepository.save(kyc);
+
+        // Cập nhật User isKyc = true
+        User user = kyc.getUser();
+        user.setKyc(true);
+        userRepository.save(user);
     }
 }

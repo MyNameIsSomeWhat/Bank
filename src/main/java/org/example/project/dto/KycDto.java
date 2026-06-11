@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDto {
+public class KycDto {
     private Long id;
-    private String username;
-    private String fullName;
-    private String email;
-    private boolean kyc;
+    private Long userId;
+    private String documentUrl;
+    private String status;
 }
