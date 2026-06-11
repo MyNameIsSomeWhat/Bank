@@ -66,8 +66,8 @@ public class TransactionService {
 
         return txPage.map(tx -> new TransactionResponseDto(
                 tx.getId(),
-                tx.getFromAccount().getAccountNumber(),
-                tx.getToAccount().getAccountNumber(),
+                tx.getFromAccount() != null ? tx.getFromAccount().getAccountNumber() : null,
+                tx.getToAccount() != null ? tx.getToAccount().getAccountNumber() : null,
                 tx.getAmount(),
                 tx.getTransactionType(),
                 tx.getTimestamp()

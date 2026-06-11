@@ -16,14 +16,14 @@ public class JwtService {
 
     private final TokenBlacklistRepository tokenBlacklistRepository;
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:rikkeiBankSuperSecretKey2026MustBeAtLeast256BitsLongForHS256}")
     private String secret;
 
-    @Value("${jwt.access.expiration}")
-    private long accessExpiration;   // 5 phút
+    @Value("${jwt.access.expiration:300000}")
+    private long accessExpiration;
 
-    @Value("${jwt.refresh.expiration}")
-    private long refreshExpiration;  // 24 giờ
+    @Value("${jwt.refresh.expiration:86400000}")
+    private long refreshExpiration;
 
     public JwtService(TokenBlacklistRepository tokenBlacklistRepository) {
         this.tokenBlacklistRepository = tokenBlacklistRepository;
