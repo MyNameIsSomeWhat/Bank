@@ -20,7 +20,7 @@ public class TransactionController {
 
     // FR-07: Chuyển tiền
     @PostMapping("/transfer")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'STAFF')")
     public ResponseEntity<String> transfer(@RequestBody TransferRequest request) {
         transactionService.transfer(request);
         return ResponseEntity.ok("Chuyển tiền thành công");
