@@ -26,15 +26,20 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-
+        // === SỬA Ở ĐÂY: KHÔNG THÊM PREFIX "ROLE_" ===
         List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole())
+                new SimpleGrantedAuthority(user.getRole())   // Ví dụ: "ADMIN", "STAFF", "CUSTOMER"
         );
+
+        // Debug (bạn có thể comment sau khi test ổn)
+        System.out.println("=== DEBUG AUTHORITY === Username: " + username
+                + " | Role: " + user.getRole()
+                + " | Authority: " + authorities);
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities(user.getRole())
+                .authorities(authorities)
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)

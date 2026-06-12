@@ -24,7 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity(debug = true)
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -36,7 +36,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                         .requestMatchers("/api/v1/kyc/upload").permitAll()
 
-                        // === SỬA THEO CÁCH KHÔNG DÙNG ROLE_ ===
+                        // Phân quyền theo SRS
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/staff/**").hasAuthority("STAFF")
                         .requestMatchers("/api/v1/users/**").hasAnyAuthority("ADMIN", "STAFF")
