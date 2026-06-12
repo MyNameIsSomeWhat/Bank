@@ -18,7 +18,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'STAFF')")   // SỬA THÀNH hasAnyAuthority
+    //@PreAuthorize("hasAnyAuthority('ADMIN', 'STAFF')")   // SỬA THÀNH hasAnyAuthority
     public ResponseEntity<Page<UserResponseDto>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
