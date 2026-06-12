@@ -47,9 +47,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                         .requestMatchers("/api/v1/kyc/upload").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/staff/**").hasRole("STAFF")
-                        .requestMatchers("/api/v1/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/v1/staff/**").hasAuthority("STAFF")
+                        .requestMatchers("/api/v1/customer/**").hasAuthority("CUSTOMER")
+                        .requestMatchers("/api/v1/users/**").hasAnyAuthority("ADMIN", "STAFF")
                         .requestMatchers("/api/v1/accounts/**", "/api/v1/transactions/**", "/api/v1/users/**").authenticated()
                         .anyRequest().authenticated()
                 )
