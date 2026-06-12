@@ -19,7 +19,7 @@ public class JwtService {
     @Value("${jwt.secret:rikkeiBankSuperSecretKey2026MustBeAtLeast256BitsLongForHS256}")
     private String secret;
 
-    @Value("${jwt.access.expiration:300000}")
+    @Value("${jwt.access.expiration:1800000}")
     private long accessExpiration;
 
     @Value("${jwt.refresh.expiration:86400000}")
